@@ -1,7 +1,10 @@
-from setuptools import setup
-
+""" @xvdp fixed setup for simple import as:
+>>> import guided_diffusion
+"""
+from setuptools import setup, find_packages
 setup(
     name="guided-diffusion",
-    py_modules=["guided_diffusion"],
+    packages = find_packages(),
     install_requires=["blobfile>=1.0.5", "torch", "tqdm", "mpi4py"],
+    version='0.0.1'
 )
