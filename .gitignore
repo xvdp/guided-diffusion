@@ -6,3 +6,5 @@ classify_image_graph_def.pb
 *.egg-info/
 models/
 build/
+evaluations/
+results/
