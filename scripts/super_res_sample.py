@@ -19,6 +19,24 @@ from guided_diffusion.script_util import (
     add_dict_to_argparser,
 )
 
+def load_tolerant(model, checkpoint):
+    """ Loads statedict onto model even if some keys are missing
+    This could be problematic if model and state_dict are very different; 
+    #
+    if class_cond==False, model has no parameter 'label_emb.weight'
+    not_in_model == ['label_emb.weight']
+    Results in invalid upsampling
+    """
+    state_dict = th.load(checkpoint, map_location="cpu")
+    model_state_dict = model.state_dict()
+
+    not_in_model = [k for k in state_dict if k not in model_state_dict]
+    not_in_checkpoint = [k for k in model_state_dict if k not in state_dict]
+    matched = [k for k in model_state_dict if k in state_dict]
+    for k in matched:
+       model_state_dict[k] = state_dict[k]
+    model.load_state_dict(model_state_dict)
+    return matched, not_in_model, not_in_checkpoint
 
 def main():
     args = create_argparser().parse_args()
@@ -33,6 +51,10 @@ def main():
     model.load_state_dict(
         dist_util.load_state_dict(args.model_path, map_location="cpu")
     )
+    # matched, not_in_model, not_in_checkpoint = load_tolerant(model, args.model_path)
+    # assert not not_in_checkpoint, f"missing keys in checkpoint {not_in_checkpoint}"
+    # assert len(not_in_model) in (0,1), f"multiple keys missing in model {not_in_model}"
+
     model.to(dist_util.dev())
     if args.use_fp16:
         model.convert_to_fp16()
