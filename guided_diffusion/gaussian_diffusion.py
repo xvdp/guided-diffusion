@@ -15,6 +15,11 @@ from .nn import mean_flat
 from .losses import normal_kl, discretized_gaussian_log_likelihood
 
 
+_DEBUG = True
+def print_cond(*msg, cond=_DEBUG):
+    if cond:
+        print(*msg)
+
 def get_named_beta_schedule(schedule_name, num_diffusion_timesteps):
     """
     Get a pre-defined beta schedule for the given name.
@@ -167,6 +172,7 @@ class GaussianDiffusion:
             * np.sqrt(alphas)
             / (1.0 - self.alphas_cumprod)
         )
+        self.logonce=[]
 
     def q_mean_variance(self, x_start, t):
         """
@@ -183,6 +189,8 @@ class GaussianDiffusion:
         log_variance = _extract_into_tensor(
             self.log_one_minus_alphas_cumprod, t, x_start.shape
         )
+        print_cond(f" GaussianDiffusion.q_mean_variance(mean: {mean.shape}, variance: {variance.shape}, log_variance: {log_variance.shape})", cond=_DEBUG and "q_mean_variance" not in self.logonce)
+        self.logonce.append('q_mean_variance')
         return mean, variance, log_variance
 
     def q_sample(self, x_start, t, noise=None):
@@ -199,6 +207,9 @@ class GaussianDiffusion:
         if noise is None:
             noise = th.randn_like(x_start)
         assert noise.shape == x_start.shape
+        print_cond(f" GaussianDiffusion.q_sample(noise: {noise.shape}, x_start: {x_start.shape}", cond=_DEBUG and "q_sample" not in self.logonce)
+        self.logonce.append('q_sample')
+    
         return (
             _extract_into_tensor(self.sqrt_alphas_cumprod, t, x_start.shape) * x_start
             + _extract_into_tensor(self.sqrt_one_minus_alphas_cumprod, t, x_start.shape)
@@ -227,6 +238,8 @@ class GaussianDiffusion:
             == posterior_log_variance_clipped.shape[0]
             == x_start.shape[0]
         )
+        print_cond(f" GaussianDiffusion.q_posterior_mean_variance( posterior_mean:{posterior_mean.shape}, posterior_variance: {posterior_variance.shape}, posterior_log_variance_clipped: {posterior_log_variance_clipped.shape}", cond=_DEBUG and "q_posterior_mean_variance" not in self.logonce)
+        self.logonce.append('q_posterior_mean_variance')
         return posterior_mean, posterior_variance, posterior_log_variance_clipped
 
     def p_mean_variance(
@@ -318,6 +331,9 @@ class GaussianDiffusion:
         assert (
             model_mean.shape == model_log_variance.shape == pred_xstart.shape == x.shape
         )
+        print_cond(f" GaussianDiffusion.p_mean_variance(model_mean: {model_mean.shape}, model_variance: {model_variance.shape}, model_log_variance: {model_log_variance.shape}, pred_xstart: {pred_xstart.shape}", cond=_DEBUG and "p_mean_variance" not in self.logonce)
+        self.logonce.append('p_mean_variance')
+    
         return {
             "mean": model_mean,
             "variance": model_variance,
@@ -327,6 +343,9 @@ class GaussianDiffusion:
 
     def _predict_xstart_from_eps(self, x_t, t, eps):
         assert x_t.shape == eps.shape
+        print_cond(f" GaussianDiffusion._predict_xstart_from_eps(x_t: {x_t.shape},  eps: {eps.shape}", cond=_DEBUG and "_predict_xstart_from_eps" not in self.logonce)
+        self.logonce.append('_predict_xstart_from_eps')
+    
         return (
             _extract_into_tensor(self.sqrt_recip_alphas_cumprod, t, x_t.shape) * x_t
             - _extract_into_tensor(self.sqrt_recipm1_alphas_cumprod, t, x_t.shape) * eps
@@ -334,6 +353,9 @@ class GaussianDiffusion:
 
     def _predict_xstart_from_xprev(self, x_t, t, xprev):
         assert x_t.shape == xprev.shape
+        print_cond(f" GaussianDiffusion._predict_xstart_from_xprev(x_t: {x_t.shape},  xprev: {xprev.shape}", cond=_DEBUG and "_predict_xstart_from_xprev" not in self.logonce)
+        self.logonce.append('_predict_xstart_from_xprev')
+    
         return (  # (xprev - coef2*x_t) / coef1
             _extract_into_tensor(1.0 / self.posterior_mean_coef1, t, x_t.shape) * xprev
             - _extract_into_tensor(
@@ -343,6 +365,8 @@ class GaussianDiffusion:
         )
 
     def _predict_eps_from_xstart(self, x_t, t, pred_xstart):
+        print_cond(f" GaussianDiffusion._predict_eps_from_xstart(x_t: {x_t.shape},  pred_xstart: {pred_xstart.shape}", cond=_DEBUG and "_predict_eps_from_xstart" not in self.logonce)
+        self.logonce.append('_predict_eps_from_xstart')
         return (
             _extract_into_tensor(self.sqrt_recip_alphas_cumprod, t, x_t.shape) * x_t
             - pred_xstart
@@ -366,6 +390,8 @@ class GaussianDiffusion:
         new_mean = (
             p_mean_var["mean"].float() + p_mean_var["variance"] * gradient.float()
         )
+        print_cond(f" GaussianDiffusion.condition_mean(new_mean: {new_mean.shape}", cond=_DEBUG and "condition_mean" not in self.logonce)
+        self.logonce.append('condition_mean')
         return new_mean
 
     def condition_score(self, cond_fn, p_mean_var, x, t, model_kwargs=None):
@@ -390,6 +416,9 @@ class GaussianDiffusion:
         out["mean"], _, _ = self.q_posterior_mean_variance(
             x_start=out["pred_xstart"], x_t=x, t=t
         )
+        print_cond(f" GaussianDiffusion.condition_score(x: {x.shape}, cond_fn: {cond_fn}, p_mean_var: {p_mean_var} out: {out.shape}", cond=_DEBUG and "condition_score" not in self.logonce)
+        self.logonce.append('condition_score')
+
         return out
 
     def p_sample(
@@ -436,6 +465,9 @@ class GaussianDiffusion:
                 cond_fn, out, x, t, model_kwargs=model_kwargs
             )
         sample = out["mean"] + nonzero_mask * th.exp(0.5 * out["log_variance"]) * noise
+        print_cond(f" GaussianDiffusion.p_sample(x: {x.shape}, cond_fn: {cond_fn}, sample: {sample.shape} pred_xstart: {out['pred_xstart'].shape}", cond=_DEBUG and "p_sample" not in self.logonce)
+        self.logonce.append('p_sample')
+
         return {"sample": sample, "pred_xstart": out["pred_xstart"]}
 
     def p_sample_loop(
@@ -482,6 +514,8 @@ class GaussianDiffusion:
             progress=progress,
         ):
             final = sample
+        print_cond(f" GaussianDiffusion.p_sample_loop( final['sample']: {final['sample'].shape}", cond=_DEBUG and "p_sample_loop" not in self.logonce)
+        self.logonce.append('p_sample_loop')
         return final["sample"]
 
     def p_sample_loop_progressive(
@@ -512,6 +546,9 @@ class GaussianDiffusion:
         else:
             img = th.randn(*shape, device=device)
         indices = list(range(self.num_timesteps))[::-1]
+
+        print_cond(f" GaussianDiffusion.p_sample_loop_progressive(indices: {indices}", cond=_DEBUG and "p_sample_loop_progressive" not in self.logonce)
+        self.logonce.append('p_sample_loop_progressive')
 
         if progress:
             # Lazy import so that we don't depend on tqdm.
@@ -582,6 +619,12 @@ class GaussianDiffusion:
             (t != 0).float().view(-1, *([1] * (len(x.shape) - 1)))
         )  # no noise when t == 0
         sample = mean_pred + nonzero_mask * sigma * noise
+
+
+        print_cond(f" GaussianDiffusion.ddim_sample(sample: {sample.shape}, out['pred_xstart']:{out['pred_xstart']}", cond=_DEBUG and "ddim_sample" not in self.logonce)
+        self.logonce.append('ddim_sample')
+
+
         return {"sample": sample, "pred_xstart": out["pred_xstart"]}
 
     def ddim_reverse_sample(
@@ -620,6 +663,9 @@ class GaussianDiffusion:
             + th.sqrt(1 - alpha_bar_next) * eps
         )
 
+        print_cond(f" GaussianDiffusion.ddim_reverse_sample(sample: {mean_pred.shape}, out['pred_xstart']:{out['pred_xstart']}", cond=_DEBUG and "ddim_reverse_sample" not in self.logonce)
+        self.logonce.append('ddim_reverse_sample')
+
         return {"sample": mean_pred, "pred_xstart": out["pred_xstart"]}
 
     def ddim_sample_loop(
@@ -654,6 +700,10 @@ class GaussianDiffusion:
             eta=eta,
         ):
             final = sample
+
+        print_cond(f" GaussianDiffusion.ddim_sample_loop(final['sample']:{final['sample']}", cond=_DEBUG and "ddim_sample_loop" not in self.logonce)
+        self.logonce.append('ddim_sample_loop')
+
         return final["sample"]
 
     def ddim_sample_loop_progressive(
@@ -683,6 +733,9 @@ class GaussianDiffusion:
         else:
             img = th.randn(*shape, device=device)
         indices = list(range(self.num_timesteps))[::-1]
+
+        print_cond(f" GaussianDiffusion.ddim_sample_loop_progressive(indices:{indices}", cond=_DEBUG and "ddim_sample_loop_progressive" not in self.logonce)
+        self.logonce.append('ddim_sample_loop_progressive')
 
         if progress:
             # Lazy import so that we don't depend on tqdm.
@@ -739,6 +792,10 @@ class GaussianDiffusion:
         # At the first timestep return the decoder NLL,
         # otherwise return KL(q(x_{t-1}|x_t,x_0) || p(x_{t-1}|x_t))
         output = th.where((t == 0), decoder_nll, kl)
+
+        print_cond(f" GaussianDiffusion._vb_terms_bpd(output:{output.shape}, pred_xstart: {out['pred_xstart']}", cond=_DEBUG and "_vb_terms_bpd" not in self.logonce)
+        self.logonce.append('_vb_terms_bpd')
+
         return {"output": output, "pred_xstart": out["pred_xstart"]}
 
     def training_losses(self, model, x_start, t, model_kwargs=None, noise=None):
@@ -832,6 +889,11 @@ class GaussianDiffusion:
         kl_prior = normal_kl(
             mean1=qt_mean, logvar1=qt_log_variance, mean2=0.0, logvar2=0.0
         )
+
+
+        print_cond(f" GaussianDiffusion._prior_bpd(kl_prior:{kl_prior.shape}", cond=_DEBUG and "_prior_bpd" not in self.logonce)
+        self.logonce.append('_prior_bpd')
+    
         return mean_flat(kl_prior) / np.log(2.0)
 
     def calc_bpd_loop(self, model, x_start, clip_denoised=True, model_kwargs=None):
@@ -883,6 +945,11 @@ class GaussianDiffusion:
 
         prior_bpd = self._prior_bpd(x_start)
         total_bpd = vb.sum(dim=1) + prior_bpd
+
+
+        print_cond(f" GaussianDiffusion.calc_bpd_loop(vb:{vb.shape}, prior_bpd:{prior_bpd.shape}, total_bpd:{total_bpd.shape}", cond=_DEBUG and "calc_bpd_loop" not in self.logonce)
+        self.logonce.append('calc_bpd_loop')
+    
         return {
             "total_bpd": total_bpd,
             "prior_bpd": prior_bpd,

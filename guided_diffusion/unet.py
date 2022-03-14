@@ -18,7 +18,12 @@ from .nn import (
     timestep_embedding,
 )
 
+_DEBUG = True
+def print_cond(*msg, cond=_DEBUG):
+    if cond:
+        print(*msg)
 
+# pylint: disable=no-member
 class AttentionPool2d(nn.Module):
     """
     Adapted from CLIP: https://github.com/openai/CLIP/blob/main/clip/model.py
@@ -451,6 +456,19 @@ class UNetModel(nn.Module):
         if num_heads_upsample == -1:
             num_heads_upsample = num_heads
 
+        print("Unet:", in_channels)
+        print("\tin_channels", in_channels)
+        print("\tout_channels", out_channels)
+        print("\tmodel_channels", model_channels)
+        print("\tnum_res_blocks", num_res_blocks)
+        print("\tattention_resolutions", attention_resolutions)
+        print("\tdropout", dropout)
+        print("\tconv_resample", conv_resample)
+        print("\tnum_classes", num_classes)
+        print("\tnum_heads", num_heads)
+        print("\tnum_head_channels", num_head_channels)
+        print("\tnum_heads_upsample", num_heads_upsample)
+
         self.image_size = image_size
         self.in_channels = in_channels
         self.model_channels = model_channels
@@ -614,6 +632,7 @@ class UNetModel(nn.Module):
             nn.SiLU(),
             zero_module(conv_nd(dims, input_ch, out_channels, 3, padding=1)),
         )
+        self.logonce = []
 
     def convert_to_fp16(self):
         """
@@ -644,6 +663,9 @@ class UNetModel(nn.Module):
             self.num_classes is not None
         ), "must specify y if and only if the model is class-conditional"
 
+
+        print_cond(f" Unet.forward(x: {x.shape}, t: {timesteps.shape}, y: {y.shape})", cond=_DEBUG and "forward" not in self.logonce)
+
         hs = []
         emb = self.time_embed(timestep_embedding(timesteps, self.model_channels))
 
@@ -653,13 +675,24 @@ class UNetModel(nn.Module):
 
         h = x.type(self.dtype)
         for module in self.input_blocks:
+            print_cond(f"    Unet.forward: input.blocks(h: {h.shape}, emb {emb.shape}", cond=_DEBUG and "forward" not in self.logonce)
+
             h = module(h, emb)
             hs.append(h)
+
+        print_cond(f"    Unet.forward: middle.blocks(h: {h.shape}, emb {emb.shape}", cond=_DEBUG and "forward" not in self.logonce)
+
         h = self.middle_block(h, emb)
         for module in self.output_blocks:
+            print_cond(f" Unet.forward: output.blocks(h: {h.shape}, emb {emb.shape})", cond=_DEBUG and "forward" not in self.logonce)
+
             h = th.cat([h, hs.pop()], dim=1)
             h = module(h, emb)
         h = h.type(x.dtype)
+
+        print_cond(f" Unet.forward: out(h: {h.shape})", cond=_DEBUG and "forward" not in self.logonce)
+        self.logonce.append("forward")
+
         return self.out(h)
 
 
@@ -675,8 +708,14 @@ class SuperResModel(UNetModel):
 
     def forward(self, x, timesteps, low_res=None, **kwargs):
         _, _, new_height, new_width = x.shape
+
+        print_cond(f" SuperResModel.forward(x): {x.shape} low_res {low_res.shape}, t: {timesteps})", cond=_DEBUG and "superfwd" not in self.logonce)
+
         upsampled = F.interpolate(low_res, (new_height, new_width), mode="bilinear")
         x = th.cat([x, upsampled], dim=1)
+
+        print_cond(f" SuperResModel.forward; cat (x, upsampled): {x.shape})", cond=_DEBUG and "superfwd" not in self.logonce)
+        self.logonce.append("superfwd")
         return super().forward(x, timesteps, **kwargs)
 
 
@@ -729,6 +768,27 @@ class EncoderUNetModel(nn.Module):
         self.num_heads_upsample = num_heads_upsample
 
         time_embed_dim = model_channels * 4
+
+
+        print_cond("EncoderUNetModel.__init__():")
+        print_cond("\tin_channels", in_channels)
+        print_cond("\tout_channels", out_channels)
+        print_cond("\tmodel_channels", model_channels)
+        print_cond("\tnum_res_blocks", num_res_blocks)
+        print_cond("\tattention_resolutions", attention_resolutions)
+        print_cond("\tdropout", dropout)
+        print_cond("\tchannel_mult", channel_mult)
+        print_cond("\tconv_resample", conv_resample)
+        print_cond("\tnum_heads", num_heads)
+        print_cond("\tnum_heads_upsample  (num_heads_upsample = num_heads_upsample ? -1: num_heads", num_heads_upsample)
+        print_cond("\tnum_head_channels", num_head_channels)
+        print_cond("\ttime_embed_dim ( model_channels * 4)", time_embed_dim)
+        print_cond("\tuse_scale_shift_norm", use_scale_shift_norm)
+        print_cond("\tresblock_updown", resblock_updown)
+        print_cond("\tuse_new_attention_order", use_new_attention_order)
+        print_cond("\tpool", pool)
+
+
         self.time_embed = nn.Sequential(
             linear(model_channels, time_embed_dim),
             nn.SiLU(),
@@ -743,7 +803,8 @@ class EncoderUNetModel(nn.Module):
         input_block_chans = [ch]
         ds = 1
         for level, mult in enumerate(channel_mult):
-            for _ in range(num_res_blocks):
+            for i in range(num_res_blocks):
+                print_cond(f"\tlevel[{level}], mult[{mult}], res_block[{i}] +ResBlock(ch{ch}, time_embed_dim:{time_embed_dim}, dropout:{dropout}), out_channels:{int(mult * model_channels)}, dims:{dims}, use_scale_shift_norm:{use_scale_shift_norm}")
                 layers = [
                     ResBlock(
                         ch,
@@ -757,6 +818,7 @@ class EncoderUNetModel(nn.Module):
                 ]
                 ch = int(mult * model_channels)
                 if ds in attention_resolutions:
+                    print_cond(f"\t level[{level}], mult[{mult}] +AttentionBlock(ch{ch}, num_heads:{num_heads}, num_head_channels:{num_head_channels}), use_new_attention_order:{use_new_attention_order}")
                     layers.append(
                         AttentionBlock(
                             ch,
@@ -766,11 +828,17 @@ class EncoderUNetModel(nn.Module):
                             use_new_attention_order=use_new_attention_order,
                         )
                     )
+                print_cond(f"\t level[{level}], mult[{mult}], res_block[{i}] +TimestepEmbedSequential(*layers{ len(layers)}")
                 self.input_blocks.append(TimestepEmbedSequential(*layers))
                 self._feature_size += ch
                 input_block_chans.append(ch)
             if level != len(channel_mult) - 1:
                 out_ch = ch
+                if resblock_updown:
+                    print_cond(f"\t level[{level}], mult[{mult}], res_block[{i}] (level != len(channel_mult) - 1) +TimestepEmbedSequential(+ResBlock(ch{ch}, time_embed_dim:{time_embed_dim}, dropout:{dropout}), out_channels:{out_ch}, dims:{dims}, use_scale_shift_norm:{use_scale_shift_norm}, down:")
+                else:
+                    print_cond(f"\t level[{level}], mult[{mult}], res_block[{i}] Downsample(ch:{ch}, conv_resample:{conv_resample}, dims:{dims}, out_channels:{out_ch}")
+
                 self.input_blocks.append(
                     TimestepEmbedSequential(
                         ResBlock(
@@ -793,6 +861,11 @@ class EncoderUNetModel(nn.Module):
                 input_block_chans.append(ch)
                 ds *= 2
                 self._feature_size += ch
+
+        print_cond(f"\t middle_block TimestepEmbedSequential(...")
+        print_cond(f"\t\t ResBlock(ch:{ch}, time_embed_dim:{time_embed_dim}, dropout:{dropout}, dims:{dims}, use_scale_shift_norm:{use_scale_shift_norm}")
+        print_cond(f"\t\t AttentionBlock(ch:{ch}, num_heads:{num_heads}, num_head_channels:{num_head_channels}, use_new_attention_order:{use_new_attention_order}")
+        print_cond(f"\t\t ResBlock(ch:{ch}, time_embed_dim:{time_embed_dim}, dropout:{dropout}, dims:{dims}, use_scale_shift_norm:{use_scale_shift_norm}")
 
         self.middle_block = TimestepEmbedSequential(
             ResBlock(
@@ -853,6 +926,8 @@ class EncoderUNetModel(nn.Module):
             )
         else:
             raise NotImplementedError(f"Unexpected {pool} pooling")
+        self.logonce = False
+        
 
     def convert_to_fp16(self):
         """
@@ -876,14 +951,22 @@ class EncoderUNetModel(nn.Module):
         :param timesteps: a 1-D batch of timesteps.
         :return: an [N x K] Tensor of outputs.
         """
+        print_cond(f" EncoderUNetModel.forward;  (x, t): {x.shape, timesteps.shape})", cond=_DEBUG and not self.logonce)
+
         emb = self.time_embed(timestep_embedding(timesteps, self.model_channels))
 
         results = []
         h = x.type(self.dtype)
+        i=0
         for module in self.input_blocks:
+            print_cond(f" EncoderUNetModel.forward, .input_blocks[{i}]  (h, emb): {h.shape, emb.shape})", cond=_DEBUG and not self.logonce)
+            i += 1
             h = module(h, emb)
             if self.pool.startswith("spatial"):
                 results.append(h.type(x.dtype).mean(dim=(2, 3)))
+
+        print_cond(f" EncoderUNetModel.forward, .middle_block  (h, emb): {h.shape, emb.shape})", cond=_DEBUG and not self.logonce)
+        self.logonce = True
         h = self.middle_block(h, emb)
         if self.pool.startswith("spatial"):
             results.append(h.type(x.dtype).mean(dim=(2, 3)))

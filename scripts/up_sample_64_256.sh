@@ -9,17 +9,23 @@
 # SAMPLE_FLAGS="--batch_size 4 --num_samples 100 --timestep_respacing 250"
 UPSAMPLER='../models/64_256_upsampler.pt'
 BASESAMPLE='../results/samples_4x64x64x3_2/samples_4x64x64x3.npz'
-CLASS_COND='True'
+CLASS_COND='True'  # has to be true to return valid
 BATCH_SIZE=4
-SAMPLES=4_
+SAMPLES=4
 
 # # 16 images
 BASESAMPLE='/home/z/work/gits/Diffusion/guided-diffusion/results/upscale64/upsample_downscale_.npz'
 BASESAMPLE='/home/z/work/gits/Diffusion/guided-diffusion/results/samples_64x64x64x3/samples_64x64x64x3.npz'
 BASESAMPLE='/home/z/work/gits/Diffusion/guided-diffusion/results/samples_16x64x64x3/samples_16x64x64x3.npz'
-# CLASS_COND='False'
+BASESAMPLE='/home/z/work/gits/Diffusion/guided-diffusion/results/upscale64/upsample_bear_downscale_.npz' # bear with differen class conditionals
+
 BATCH_SIZE=4
 SAMPLES=16
+BASESAMPLE="/home/z/work/gits/Diffusion/guided-diffusion/results/upscale64/upsample_hare_downscale_.npz" # hare
+BATCH_SIZE=2
+SAMPLES=2
+# CLASS_COND='False'
+
 
 
 if [ ! -f "$UPSAMPLER" ]; then

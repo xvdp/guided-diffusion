@@ -26,10 +26,30 @@ Even though generated data fails to capture larger scale structure information, 
 ### Upsample Generated Data
 <div align="center">
     <table><tr>
-        <!-- <td> <img width="100%" src=".github/upsample_original_.png"/> <figcaption>Original 256x256 patches</figcaption></td> -->
         <td> <img width="60%" src=".github/classifier_sample_16x64x64.png"/><figcaption>Generated 64x64</figcaption></td>
         <td> <img width="60%" src=".github/upsample_generated_256x256.png"/><figcaption>Up sampled to 256x256</figcaption></td>
     </tr></table>
 </div>
 <!-- [12, 863, 862, 201, 337, 788, 287, 857, 98, 50, 138, 445, 545, 330, 469, 534] -->
 <!-- ['house_finch', 'totem_pole', 'torch', 'silky_terrier', 'beaver', 'shoe_shop', 'lynx', 'throne', 'red-breasted_merganser', 'American_alligator', 'bustard', 'bikini', 'electric_fan', 'wood_rabbit', 'caldron', 'dishwasher'] -->
+
+
+### Upsample
+<div align="center">
+    <table><tr>
+        <td> <img width="100%" src=".github/upsample_hare_original_.png"/><figcaption>Original</figcaption></td>
+        <td> <img width="100%" src=".github/upsample_hare.png"/><figcaption>Up sampled</figcaption></td>
+        <td> <img width="100%" src=".github/upsample_bicubic_hare.png"><figcaption>Bicubic upsample</figcaption></td>
+    </tr></table>
+</div>
+g
+
+### Upsample image in the wild conditioned on different classes
+Class conditioning does not seem to make any subtantive difference in upsampling.
+Same image is upsaple with class conditionals [296,296,466,466,469,469, 483,483,518,518,3,3,29,29,772,772] (['ice_bear', 'ice_bear', 'bullet_train', 'bullet_train', 'caldron', 'caldron', 'castle', 'castle', 'crash_helmet', 'crash_helmet', 'tiger_shark', 'tiger_shark', 'axolotl', 'axolotl', 'safety_pin', 'safety_pin'])
+<div align="center">
+    <table><tr>
+        <td> <img width="100%" src=".github/upsample_bear_256x256.png"/> <figcaption>From The Wild 256x256 patches</figcaption></td>
+        <!-- <td> <img width="100%" src=".github/upsample_bearclass_256x256.png"/> <figcaption>From The Wild 256x256 patches</figcaption></td> -->
+    </tr></table>
+</div>
