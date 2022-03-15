@@ -46,13 +46,12 @@ Upsampling conditions by concatenating a bilinear upsampling model output, at ev
 
 
 ### Upsampling Test
-<div align="center">
-    <table><tr>
-        <td> <img width="100%" src=".github/upsample_fires_256x256_original.png"/><figcaption>Original</figcaption></td>
-        <td> <img width="100%" src=".github/upsample_fires_256x256.png"/><figcaption>Up sampled</figcaption></td>
-        <td> <img width="100%" src=".github/upsample_fires_256x256_bilinear.png"><figcaption>Bilinear upsample (input to model at every time step)</figcaption></td>
-    </tr></table>
-</div>
+
+1. Original 
+2. Upsampled   
+3. Bilinear upsample
+<td> <img width="100%" src=".github/upsample_fires.png"/></td>
+
 
 ### Upsample image conditioned on different classes
 `Class conditioning does not seem to make any subtantive difference in upsampling`.
