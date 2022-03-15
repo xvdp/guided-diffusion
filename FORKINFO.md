@@ -39,10 +39,10 @@ Upsampling conditions by concatenating a bilinear upsampling model output, at ev
 ### Upsampling Test: 250 / 1000 steps
 <div align="center">
     <table><tr>
-        <td> <img width="100%" src=".github/upsample_hare_original_.png"/><figcaption>Original</figcaption></td>
-        <td> <img width="100%" src=".github/upsample_hare_1000steps_256x256.png"/><figcaption>Up sampled (1000 steps)</figcaption></td>
-        <td> <img width="100%" src=".github/upsample_hare.png"/><figcaption>Up sampled (250 steps)</figcaption></td>
-        <td> <img width="100%" src=".github/upsample_bicubic_hare.png"><figcaption>Bicubic upsample</figcaption></td>
+        <td> <img height="100%" src=".github/upsample_hare_original_.png"/><figcaption>Original</figcaption></td>
+        <td> <img height="100%" src=".github/upsample_hare_1000steps_256x256.png"/><figcaption>Up sampled (1000 steps)</figcaption></td>
+        <td> <img height="100%" src=".github/upsample_hare.png"/><figcaption>Up sampled (250 steps)</figcaption></td>
+        <td> <img height="100%" src=".github/upsample_bicubic_hare.png"><figcaption>Bicubic upsample</figcaption></td>
     </tr></table>
 </div>
 
