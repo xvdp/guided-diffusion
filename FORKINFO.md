@@ -36,15 +36,14 @@ Upsampling conditions by concatenating a bilinear upsampling model output, at ev
 <!-- ['house_finch', 'totem_pole', 'torch', 'silky_terrier', 'beaver', 'shoe_shop', 'lynx', 'throne', 'red-breasted_merganser', 'American_alligator', 'bustard', 'bikini', 'electric_fan', 'wood_rabbit', 'caldron', 'dishwasher'] -->
 
 
-### Upsampling Test: 250 / 1000 steps
-<div align="center">
-    <table><tr>
-        <td> <img height="100%" src=".github/upsample_hare_original_.png"/><figcaption>Original</figcaption></td>
-        <td> <img height="100%" src=".github/upsample_hare_1000steps_256x256.png"/><figcaption>Up sampled (1000 steps)</figcaption></td>
-        <td> <img height="100%" src=".github/upsample_hare.png"/><figcaption>Up sampled (250 steps)</figcaption></td>
-        <td> <img height="100%" src=".github/upsample_bicubic_hare.png"><figcaption>Bicubic upsample</figcaption></td>
-    </tr></table>
-</div>
+### Upsampling Tests:
+
+1. Original 
+2. Upsampled (1000 steps)     
+3. Upsampled (250 steps)   
+4. Bicubic upsample
+<td> <img width="100%" src=".github/upsample_hare.png"/></td>
+
 
 ### Upsampling Test
 <div align="center">
