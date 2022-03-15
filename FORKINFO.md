@@ -36,17 +36,17 @@ Upsampling conditions by concatenating a bilinear upsampling model output, at ev
 <!-- ['house_finch', 'totem_pole', 'torch', 'silky_terrier', 'beaver', 'shoe_shop', 'lynx', 'throne', 'red-breasted_merganser', 'American_alligator', 'bustard', 'bikini', 'electric_fan', 'wood_rabbit', 'caldron', 'dishwasher'] -->
 
 
-### Upsample
+### Upsampling Test: 250 / 1000 steps
 <div align="center">
     <table><tr>
         <td> <img width="100%" src=".github/upsample_hare_original_.png"/><figcaption>Original</figcaption></td>
-        <!-- <td> <img width="100%" src=".github/upsample_hare_64up256_128up512_256.png"/><figcaption>Up sampled 2x</figcaption></td> -->
         <td> <img width="100%" src=".github/upsample_hare_1000steps_256x256.png"/><figcaption>Up sampled (1000 steps)</figcaption></td>
         <td> <img width="100%" src=".github/upsample_hare.png"/><figcaption>Up sampled (250 steps)</figcaption></td>
         <td> <img width="100%" src=".github/upsample_bicubic_hare.png"><figcaption>Bicubic upsample</figcaption></td>
     </tr></table>
 </div>
-### Upsample
+
+### Upsampling Test
 <div align="center">
     <table><tr>
         <td> <img width="100%" src=".github/upsample_fires_256x256_original.png"/><figcaption>Original</figcaption></td>
@@ -55,10 +55,13 @@ Upsampling conditions by concatenating a bilinear upsampling model output, at ev
     </tr></table>
 </div>
 
-
-### Upsample image in the wild conditioned on different classes
+### Upsample image conditioned on different classes
 `Class conditioning does not seem to make any subtantive difference in upsampling`.
-Same image is upsaple with class conditionals [296,296,466,466,469,469, 483,483,518,518,3,3,29,29,772,772] (['ice_bear', 'ice_bear', 'bullet_train', 'bullet_train', 'caldron', 'caldron', 'castle', 'castle', 'crash_helmet', 'crash_helmet', 'tiger_shark', 'tiger_shark', 'axolotl', 'axolotl', 'safety_pin', 'safety_pin'])
+Same image is upsaple with class conditionals
+
+[296,296,466,466,469,469, 483,483,518,518,3,3,29,29,772,772] 
+
+['ice_bear', 'ice_bear', 'bullet_train', 'bullet_train', 'caldron', 'caldron', 'castle', 'castle', 'crash_helmet', 'crash_helmet', 'tiger_shark', 'tiger_shark', 'axolotl', 'axolotl', 'safety_pin', 'safety_pin']
 <div align="center">
     <table><tr>
         <td> <img width="100%" src=".github/upsample_bear_256x256.png"/> <figcaption>From The Wild 256x256 patches</figcaption></td>
