@@ -14,12 +14,12 @@ import torch as th
 from .nn import mean_flat
 from .losses import normal_kl, discretized_gaussian_log_likelihood
 
-
 _DEBUG = True
 def print_cond(*msg, cond=_DEBUG):
     if cond:
         print(*msg)
 
+# pylint: disable=no-member
 def get_named_beta_schedule(schedule_name, num_diffusion_timesteps):
     """
     Get a pre-defined beta schedule for the given name.
@@ -172,7 +172,9 @@ class GaussianDiffusion:
             * np.sqrt(alphas)
             / (1.0 - self.alphas_cumprod)
         )
-        self.logonce=[]
+        self.logonce = []
+
+        print_cond(f" GaussianDiffusion.__init__()")
 
     def q_mean_variance(self, x_start, t):
         """
@@ -270,7 +272,11 @@ class GaussianDiffusion:
 
         B, C = x.shape[:2]
         assert t.shape == (B,)
+        print_cond(f" 0.GaussianDiffusion.p_mean_variance(x: {x.shape})", cond=_DEBUG and "p_mean_variance" not in self.logonce)
+
         model_output = model(x, self._scale_timesteps(t), **model_kwargs)
+        print_cond(f" 1.GaussianDiffusion.p_mean_variance(model_output: {model_output.shape}, model {model.__class__.__name__})", cond=_DEBUG and "p_mean_variance" not in self.logonce)
+
 
         if self.model_var_type in [ModelVarType.LEARNED, ModelVarType.LEARNED_RANGE]:
             assert model_output.shape == (B, C * 2, *x.shape[2:])
@@ -305,17 +311,30 @@ class GaussianDiffusion:
 
         def process_xstart(x):
             if denoised_fn is not None:
+                print_cond(f"  4. GaussianDiffusion.p_mean_variance.process_xstart(x: {x.shape}", cond=_DEBUG and "p_mean_variance" not in self.logonce)
+
                 x = denoised_fn(x)
+                print_cond(f"  5. GaussianDiffusion.p_mean_variance.process_xstart(x: {x.shape}", cond=_DEBUG and "p_mean_variance" not in self.logonce)
+
             if clip_denoised:
                 return x.clamp(-1, 1)
             return x
 
         if self.model_mean_type == ModelMeanType.PREVIOUS_X:
+            print_cond(f"  PREVIOUS_X GaussianDiffusion.p_mean_variance(model_mean_type: {self.model_mean_type}, x: {x.shape}, xprev: {model_output.shape}", cond=_DEBUG and "p_mean_variance_previousX" not in self.logonce)
+
             pred_xstart = process_xstart(
                 self._predict_xstart_from_xprev(x_t=x, t=t, xprev=model_output)
             )
             model_mean = model_output
+            print_cond(f"  PREVIOUS_X GaussianDiffusion.p_mean_variance(model_mean: {model_mean.shape}", cond=_DEBUG and "p_mean_variance_previousX" not in self.logonce)
+
+            self.logonce.append("p_mean_variance_previousX")
+
+
         elif self.model_mean_type in [ModelMeanType.START_X, ModelMeanType.EPSILON]:
+            print_cond(f"  START_X GaussianDiffusion.p_mean_variance(model_mean_type: {self.model_mean_type}, x: {x.shape}, eps: {model_output.shape}", cond=_DEBUG and "p_mean_variance_startX" not in self.logonce)
+
             if self.model_mean_type == ModelMeanType.START_X:
                 pred_xstart = process_xstart(model_output)
             else:
@@ -325,13 +344,17 @@ class GaussianDiffusion:
             model_mean, _, _ = self.q_posterior_mean_variance(
                 x_start=pred_xstart, x_t=x, t=t
             )
+            print_cond(f"  START_X GaussianDiffusion.p_mean_variance(model_mean: {model_mean.shape}", cond=_DEBUG and "p_mean_variance_startX" not in self.logonce)
+
+
+            self.logonce.append("p_mean_variance_startX")
         else:
             raise NotImplementedError(self.model_mean_type)
 
         assert (
             model_mean.shape == model_log_variance.shape == pred_xstart.shape == x.shape
         )
-        print_cond(f" GaussianDiffusion.p_mean_variance(model_mean: {model_mean.shape}, model_variance: {model_variance.shape}, model_log_variance: {model_log_variance.shape}, pred_xstart: {pred_xstart.shape}", cond=_DEBUG and "p_mean_variance" not in self.logonce)
+        print_cond(f" 6. GaussianDiffusion.p_mean_variance(model_mean: {model_mean.shape}, model_variance: {model_variance.shape}, model_log_variance: {model_log_variance.shape}, pred_xstart: {pred_xstart.shape}", cond=_DEBUG and "p_mean_variance" not in self.logonce)
         self.logonce.append('p_mean_variance')
     
         return {
@@ -386,11 +409,13 @@ class GaussianDiffusion:
 
         This uses the conditioning strategy from Sohl-Dickstein et al. (2015).
         """
+        print_cond(f" 1.GaussianDiffusion.condition_mean(x: {x.shape}, cond_fn: {cond_fn}, t: {t} model_kwargs: {model_kwargs}", cond=_DEBUG and "condition_mean" not in self.logonce)
+
         gradient = cond_fn(x, self._scale_timesteps(t), **model_kwargs)
         new_mean = (
             p_mean_var["mean"].float() + p_mean_var["variance"] * gradient.float()
         )
-        print_cond(f" GaussianDiffusion.condition_mean(new_mean: {new_mean.shape}", cond=_DEBUG and "condition_mean" not in self.logonce)
+        print_cond(f" 2.GaussianDiffusion.condition_mean(new_mean: {new_mean.shape}", cond=_DEBUG and "condition_mean" not in self.logonce)
         self.logonce.append('condition_mean')
         return new_mean
 
@@ -448,6 +473,18 @@ class GaussianDiffusion:
                  - 'sample': a random sample from the model.
                  - 'pred_xstart': a prediction of x_0.
         """
+        def kwargshape(kwargs):
+            if kwargs is None:
+                return None
+            kw = {}
+            for k,v in kwargs.items():
+                if isinstance(v, th.Tensor):
+                    kw[k] = v.shape
+                else:
+                    kw[k] = v
+            return kw
+        print_cond(f" 1.GaussianDiffusion.p_sample(x: {x.shape}, cond_fn: {cond_fn}, t: {t}, model: {model.__class__.__name__} model_kwargs: {kwargshape(model_kwargs)}", cond=_DEBUG and "p_sample" not in self.logonce)
+
         out = self.p_mean_variance(
             model,
             x,
@@ -465,7 +502,7 @@ class GaussianDiffusion:
                 cond_fn, out, x, t, model_kwargs=model_kwargs
             )
         sample = out["mean"] + nonzero_mask * th.exp(0.5 * out["log_variance"]) * noise
-        print_cond(f" GaussianDiffusion.p_sample(x: {x.shape}, cond_fn: {cond_fn}, sample: {sample.shape} pred_xstart: {out['pred_xstart'].shape}", cond=_DEBUG and "p_sample" not in self.logonce)
+        print_cond(f" 2.GaussianDiffusion.p_sample(x: {x.shape}, cond_fn: {cond_fn}, sample: {sample.shape} pred_xstart: {out['pred_xstart'].shape}", cond=_DEBUG and "p_sample" not in self.logonce)
         self.logonce.append('p_sample')
 
         return {"sample": sample, "pred_xstart": out["pred_xstart"]}
@@ -547,7 +584,7 @@ class GaussianDiffusion:
             img = th.randn(*shape, device=device)
         indices = list(range(self.num_timesteps))[::-1]
 
-        print_cond(f" GaussianDiffusion.p_sample_loop_progressive(indices: {indices}", cond=_DEBUG and "p_sample_loop_progressive" not in self.logonce)
+        print_cond(f" GaussianDiffusion.p_sample_loop_progressive(indices: {len(indices)}", cond=_DEBUG and "p_sample_loop_progressive" not in self.logonce)
         self.logonce.append('p_sample_loop_progressive')
 
         if progress:

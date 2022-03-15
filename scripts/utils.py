@@ -17,7 +17,7 @@ def npz_png(npzfile, prefix="classifier_sample", suffix="", folder='../results')
 
     batch_size, image_size, *_ = im.shape
     sqr = int(np.sqrt(batch_size))
-    batch_size = sqr**2
+    batch_size = sqr**2 if sqr > 1 else batch_size
 
     # classes = ar.f.arr_1
     image = np.vstack([np.hstack(im[i:i+sqr]) for i in range(0, batch_size, sqr)] )
@@ -105,7 +105,7 @@ def add_class_npz(npz, classlist):
     npz='/home/z/work/gits/Diffusion/guided-diffusion/results/upscale64/upsample_downscale__1.npz'
     classlist = [377,377,377,377,296,296,56,56,277,277,56,56,277,277,279,279]
     add_class_npz(npz, classlist)
-    
+
     """
     data = np.load(npz)
     # if len(data.files) == 2:
@@ -124,7 +124,6 @@ def class_name(arr):
 
 """Upsampming model trace input [2,64,64,3] -> [2,256,256,3]
 
-Gaussian Diffusion __init__()
 {'attention_resolutions': '32,16,8',
  'base_samples': '/home/z/work/gits/Diffusion/guided-diffusion/results/upscale64/upsample_hare_downscale_.npz',
  'batch_size': 2,
@@ -147,15 +146,13 @@ Gaussian Diffusion __init__()
  'rescale_learned_sigmas': False,
  'rescale_timesteps': False,
  'small_size': 64,
- 'timestep_respacing': '250',
+ 'timestep_respacing': '1000',
  'use_checkpoint': False,
  'use_ddim': False,
  'use_fp16': True,
  'use_kl': False,
  'use_scale_shift_norm': True}
-
-UNet __init__()
-Logging to /tmp/openai-2022-03-14-14-51-17-407538
+Logging to /tmp/openai-2022-03-15-12-46-17-071707
 creating model...
 {'attention_resolutions': '32,16,8',
  'class_cond': True,
@@ -174,94 +171,353 @@ creating model...
  'rescale_learned_sigmas': False,
  'rescale_timesteps': False,
  'small_size': 64,
- 'timestep_respacing': '250',
+ 'timestep_respacing': '1000',
  'use_checkpoint': False,
  'use_fp16': True,
  'use_kl': False,
  'use_scale_shift_norm': True}
-Unet: 6
-        in_channels 6
-        out_channels 6
-        model_channels 192
-        num_res_blocks 2
-        attention_resolutions (8, 16, 32)
-        dropout 0.0
-        conv_resample True
-        num_classes 1000
-        num_heads 4
-        num_head_channels -1
-        num_heads_upsample 4
+
+SuperResModel.__init__():
+ Unet.__init__():
+	in_channels 6
+	out_channels 6
+	model_channels 192
+	num_res_blocks 2
+	attention_resolutions (8, 16, 32)
+	dropout 0.0
+	conv_resample True
+	num_classes 1000
+	num_heads 4
+	num_head_channels -1
+	num_heads_upsample 4
+	level[0], mult[1], res_block[0] +ResBlock(ch192, time_embed_dim:768, dropout:0.0), out_channels:192, dims:2, use_scale_shift_norm:True
+	level[0], mult[1], res_block[0] +TimestepEmbedSequential(*layers 1
+	level[0], mult[1], res_block[1] +ResBlock(ch192, time_embed_dim:768, dropout:0.0), out_channels:192, dims:2, use_scale_shift_norm:True
+	level[0], mult[1], res_block[1] +TimestepEmbedSequential(*layers 1
+	level[0], mult[1], res_block[1] level != len(channel_mult) - 1] +TimestepEmbedSequential(ResBlock (ch: 192, time_embed_dim 768, dropout 0.0, out_channels 192, dims: 2
+	 level[1], mult[1], res_block[0] +ResBlock(ch192, time_embed_dim:768, dropout:0.0), out_channels:192, dims:2, use_scale_shift_norm:True
+	 level[1], mult[1], res_block[0] +TimestepEmbedSequential(*layers 1
+	 level[1], mult[1], res_block[1] +ResBlock(ch192, time_embed_dim:768, dropout:0.0), out_channels:192, dims:2, use_scale_shift_norm:True
+	 level[1], mult[1], res_block[1] +TimestepEmbedSequential(*layers 1
+	 level[1], mult[1], res_block[1] level != len(channel_mult) - 1] +TimestepEmbedSequential(ResBlock (ch: 192, time_embed_dim 768, dropout 0.0, out_channels 192, dims: 2
+	  level[2], mult[2], res_block[0] +ResBlock(ch192, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True
+	  level[2], mult[2], res_block[0] +TimestepEmbedSequential(*layers 1
+	  level[2], mult[2], res_block[1] +ResBlock(ch384, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True
+	  level[2], mult[2], res_block[1] +TimestepEmbedSequential(*layers 1
+	  level[2], mult[2], res_block[1] level != len(channel_mult) - 1] +TimestepEmbedSequential(ResBlock (ch: 384, time_embed_dim 768, dropout 0.0, out_channels 384, dims: 2
+	   level[3], mult[2], res_block[0] +ResBlock(ch384, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True
+	   level[3], mult[2] ds 8 in attention_resolutions(8, 16, 32)] +AttentionBlock(ch384, num_heads:4, num_head_channels:-1), use_new_attention_order:False
+	   level[3], mult[2], res_block[0] +TimestepEmbedSequential(*layers 2
+	   level[3], mult[2], res_block[1] +ResBlock(ch384, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True
+	   level[3], mult[2] ds 8 in attention_resolutions(8, 16, 32)] +AttentionBlock(ch384, num_heads:4, num_head_channels:-1), use_new_attention_order:False
+	   level[3], mult[2], res_block[1] +TimestepEmbedSequential(*layers 2
+	   level[3], mult[2], res_block[1] level != len(channel_mult) - 1] +TimestepEmbedSequential(ResBlock (ch: 384, time_embed_dim 768, dropout 0.0, out_channels 384, dims: 2
+	    level[4], mult[4], res_block[0] +ResBlock(ch384, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True
+	    level[4], mult[4] ds 16 in attention_resolutions(8, 16, 32)] +AttentionBlock(ch768, num_heads:4, num_head_channels:-1), use_new_attention_order:False
+	    level[4], mult[4], res_block[0] +TimestepEmbedSequential(*layers 2
+	    level[4], mult[4], res_block[1] +ResBlock(ch768, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True
+	    level[4], mult[4] ds 16 in attention_resolutions(8, 16, 32)] +AttentionBlock(ch768, num_heads:4, num_head_channels:-1), use_new_attention_order:False
+	    level[4], mult[4], res_block[1] +TimestepEmbedSequential(*layers 2
+	    level[4], mult[4], res_block[1] level != len(channel_mult) - 1] +TimestepEmbedSequential(ResBlock (ch: 768, time_embed_dim 768, dropout 0.0, out_channels 768, dims: 2
+	     level[5], mult[4], res_block[0] +ResBlock(ch768, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True
+	     level[5], mult[4] ds 32 in attention_resolutions(8, 16, 32)] +AttentionBlock(ch768, num_heads:4, num_head_channels:-1), use_new_attention_order:False
+	     level[5], mult[4], res_block[0] +TimestepEmbedSequential(*layers 2
+	     level[5], mult[4], res_block[1] +ResBlock(ch768, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True
+	     level[5], mult[4] ds 32 in attention_resolutions(8, 16, 32)] +AttentionBlock(ch768, num_heads:4, num_head_channels:-1), use_new_attention_order:False
+	     level[5], mult[4], res_block[1] +TimestepEmbedSequential(*layers 2
+	      MiddleBlock: +TimestepEmbedSequential(ResBlock (ch: 768, time_embed_dim 768, dropout 0.0, out_channels 768, dims: 2
+	      AttentionBlock (ch: 768, num_heads 4, num_head_channels -1, use_new_attention_order False
+	      ResBlock (ch: 768, time_embed_dim 768, dropout 0.0, out_channels 768, dims: 2
+	self._feature_size += ch  8256
+	     level[5], mult[4], res_block[0] +ResBlock(ch768 +ich768, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True, UP
+	     level[5], mult[4], AttentionBlock[0: ds in attention_resolutions] +AttentionBlock(ch768, num_heads:4, num_head_channels:-1)
+	     level[5], mult[4], res_block[1] +ResBlock(ch768 +ich768, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True, UP
+	     level[5], mult[4], AttentionBlock[1: ds in attention_resolutions] +AttentionBlock(ch768, num_heads:4, num_head_channels:-1)
+	     level[5], mult[4], res_block[2] +ResBlock(ch768 +ich768, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True, UP
+	     level[5], mult[4], AttentionBlock[2: ds in attention_resolutions] +AttentionBlock(ch768, num_heads:4, num_head_channels:-1)
+	     level[5], mult[4], res_block[2, level and i == num_res_blocks] +ResBlock(ch768, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True
+	    level[4], mult[4], res_block[0] +ResBlock(ch768 +ich768, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True, UP
+	    level[4], mult[4], AttentionBlock[0: ds in attention_resolutions] +AttentionBlock(ch768, num_heads:4, num_head_channels:-1)
+	    level[4], mult[4], res_block[1] +ResBlock(ch768 +ich768, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True, UP
+	    level[4], mult[4], AttentionBlock[1: ds in attention_resolutions] +AttentionBlock(ch768, num_heads:4, num_head_channels:-1)
+	    level[4], mult[4], res_block[2] +ResBlock(ch768 +ich384, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True, UP
+	    level[4], mult[4], AttentionBlock[2: ds in attention_resolutions] +AttentionBlock(ch768, num_heads:4, num_head_channels:-1)
+	    level[4], mult[4], res_block[2, level and i == num_res_blocks] +ResBlock(ch768, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True
+	   level[3], mult[2], res_block[0] +ResBlock(ch768 +ich384, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True, UP
+	   level[3], mult[2], AttentionBlock[0: ds in attention_resolutions] +AttentionBlock(ch384, num_heads:4, num_head_channels:-1)
+	   level[3], mult[2], res_block[1] +ResBlock(ch384 +ich384, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True, UP
+	   level[3], mult[2], AttentionBlock[1: ds in attention_resolutions] +AttentionBlock(ch384, num_heads:4, num_head_channels:-1)
+	   level[3], mult[2], res_block[2] +ResBlock(ch384 +ich384, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True, UP
+	   level[3], mult[2], AttentionBlock[2: ds in attention_resolutions] +AttentionBlock(ch384, num_heads:4, num_head_channels:-1)
+	   level[3], mult[2], res_block[2, level and i == num_res_blocks] +ResBlock(ch384, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True
+	  level[2], mult[2], res_block[0] +ResBlock(ch384 +ich384, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True, UP
+	  level[2], mult[2], res_block[1] +ResBlock(ch384 +ich384, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True, UP
+	  level[2], mult[2], res_block[2] +ResBlock(ch384 +ich192, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True, UP
+	  level[2], mult[2], res_block[2, level and i == num_res_blocks] +ResBlock(ch384, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True
+	 level[1], mult[1], res_block[0] +ResBlock(ch384 +ich192, time_embed_dim:768, dropout:0.0), out_channels:192, dims:2, use_scale_shift_norm:True, UP
+	 level[1], mult[1], res_block[1] +ResBlock(ch192 +ich192, time_embed_dim:768, dropout:0.0), out_channels:192, dims:2, use_scale_shift_norm:True, UP
+	 level[1], mult[1], res_block[2] +ResBlock(ch192 +ich192, time_embed_dim:768, dropout:0.0), out_channels:192, dims:2, use_scale_shift_norm:True, UP
+	 level[1], mult[1], res_block[2, level and i == num_res_blocks] +ResBlock(ch192, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True
+	level[0], mult[1], res_block[0] +ResBlock(ch192 +ich192, time_embed_dim:768, dropout:0.0), out_channels:192, dims:2, use_scale_shift_norm:True, UP
+	level[0], mult[1], res_block[1] +ResBlock(ch192 +ich192, time_embed_dim:768, dropout:0.0), out_channels:192, dims:2, use_scale_shift_norm:True, UP
+	level[0], mult[1], res_block[2] +ResBlock(ch192 +ich192, time_embed_dim:768, dropout:0.0), out_channels:192, dims:2, use_scale_shift_norm:True, UP
+ GaussianDiffusion.__init__()
+ GaussianDiffusion.__init__()
 loading data...
 creating samples...
-
- GaussianDiffusion.p_sample_loop_progressive(
-     indices: [249, 248, 247, 246, 245, 244, 243, 242, 241, 240, 239, 238, 237, 236, 235, 234, 233, 232, 231, 230, 229, 228, 227, 226, 225, 224, 223, 222, 221, 220, 219, 218, 217, 216, 215, 214, 213, 212, 211, 210, 209, 208, 207, 206, 205, 204, 203, 202, 201, 200, 199, 198, 197, 196, 195, 194, 193, 192, 191, 190, 189, 188, 187, 186, 185, 184, 183, 182, 181, 180, 179, 178, 177, 176, 175, 174, 173, 172, 171, 170, 169, 168, 167, 166, 165, 164, 163, 162, 161, 160, 159, 158, 157, 156, 155, 154, 153, 152, 151, 150, 149, 148, 147, 146, 145, 144, 143, 142, 141, 140, 139, 138, 137, 136, 135, 134, 133, 132, 131, 130, 129, 128, 127, 126, 125, 124, 123, 122, 121, 120, 119, 118, 117, 116, 115, 114, 113, 112, 111, 110, 109, 108, 107, 106, 105, 104, 103, 102, 101, 100, 99, 98, 97, 96, 95, 94, 93, 92, 91, 90, 89, 88, 87, 86, 85, 84, 83, 82, 81, 80, 79, 78, 77, 76, 75, 74, 73, 72, 71, 70, 69, 68, 67, 66, 65, 64, 63, 62, 61, 60, 59, 58, 57, 56, 55, 54, 53, 52, 51, 50, 49, 48, 47, 46, 45, 44, 43, 42, 41, 40, 39, 38, 37, 36, 35, 34, 33, 32, 31, 30, 29, 28, 27, 26, 25, 24, 23, 22, 21, 20, 19, 18, 17, 16, 15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0]
- 
- # conditional forward 
- SuperResModel.forward(x): torch.Size([2, 3, 256, 256]) low_res torch.Size([2, 3, 64, 64]), t: tensor([999, 999], device='cuda:0'))
-
+ GaussianDiffusion.p_sample_loop_progressive(indices: 1000
+ 1.GaussianDiffusion.p_sample(x: torch.Size([2, 3, 256, 256]), cond_fn: None, t: tensor([999, 999], device='cuda:0'), model: SuperResModel model_kwargs: {'low_res': torch.Size([2, 3, 64, 64]), 'y': torch.Size([2])}
+ 0.GaussianDiffusion.p_mean_variance(x: torch.Size([2, 3, 256, 256]))
+SuperResModel.forward(x): torch.Size([2, 3, 256, 256]) low_res torch.Size([2, 3, 64, 64]), t: tensor([999, 999], device='cuda:0'))
 /home/z/miniconda3/envs/abj/lib/python3.9/site-packages/torch/nn/functional.py:3631: UserWarning: Default upsampling behavior when mode=bilinear is changed to align_corners=False since 0.4.0. Please specify align_corners=True if the old behavior is desired. See the documentation of nn.Upsample for details.
   warnings.warn(
-
- SuperResModel.forward; cat (x, upsampled): torch.Size([2, 6, 256, 256]))
-
-# one step through Unet
- Unet.forward(x: torch.Size([2, 6, 256, 256]), t: torch.Size([2]), y: torch.Size([2]))
-    Unet.forward: input.blocks(h: torch.Size([2, 6, 256, 256]), emb torch.Size([2, 768])
-    Unet.forward: input.blocks(h: torch.Size([2, 192, 256, 256]), emb torch.Size([2, 768])
-    Unet.forward: input.blocks(h: torch.Size([2, 192, 256, 256]), emb torch.Size([2, 768])
-    Unet.forward: input.blocks(h: torch.Size([2, 192, 256, 256]), emb torch.Size([2, 768])
-    Unet.forward: input.blocks(h: torch.Size([2, 192, 128, 128]), emb torch.Size([2, 768])
-    Unet.forward: input.blocks(h: torch.Size([2, 192, 128, 128]), emb torch.Size([2, 768])
-    Unet.forward: input.blocks(h: torch.Size([2, 192, 128, 128]), emb torch.Size([2, 768])
-    Unet.forward: input.blocks(h: torch.Size([2, 192, 64, 64]), emb torch.Size([2, 768])
-    Unet.forward: input.blocks(h: torch.Size([2, 384, 64, 64]), emb torch.Size([2, 768])
-    Unet.forward: input.blocks(h: torch.Size([2, 384, 64, 64]), emb torch.Size([2, 768])
-    Unet.forward: input.blocks(h: torch.Size([2, 384, 32, 32]), emb torch.Size([2, 768])
-    Unet.forward: input.blocks(h: torch.Size([2, 384, 32, 32]), emb torch.Size([2, 768])
-    Unet.forward: input.blocks(h: torch.Size([2, 384, 32, 32]), emb torch.Size([2, 768])
-    Unet.forward: input.blocks(h: torch.Size([2, 384, 16, 16]), emb torch.Size([2, 768])
-    Unet.forward: input.blocks(h: torch.Size([2, 768, 16, 16]), emb torch.Size([2, 768])
-    Unet.forward: input.blocks(h: torch.Size([2, 768, 16, 16]), emb torch.Size([2, 768])
-    Unet.forward: input.blocks(h: torch.Size([2, 768, 8, 8]), emb torch.Size([2, 768])
-    Unet.forward: input.blocks(h: torch.Size([2, 768, 8, 8]), emb torch.Size([2, 768])
-        Unet.forward: middle.blocks(h: torch.Size([2, 768, 8, 8]), emb torch.Size([2, 768])
-    Unet.forward: output.blocks(h: torch.Size([2, 768, 8, 8]), emb torch.Size([2, 768]))
-    Unet.forward: output.blocks(h: torch.Size([2, 768, 8, 8]), emb torch.Size([2, 768]))
-    Unet.forward: output.blocks(h: torch.Size([2, 768, 8, 8]), emb torch.Size([2, 768]))
-    Unet.forward: output.blocks(h: torch.Size([2, 768, 16, 16]), emb torch.Size([2, 768]))
-    Unet.forward: output.blocks(h: torch.Size([2, 768, 16, 16]), emb torch.Size([2, 768]))
-    Unet.forward: output.blocks(h: torch.Size([2, 768, 16, 16]), emb torch.Size([2, 768]))
-    Unet.forward: output.blocks(h: torch.Size([2, 768, 32, 32]), emb torch.Size([2, 768]))
-    Unet.forward: output.blocks(h: torch.Size([2, 384, 32, 32]), emb torch.Size([2, 768]))
-    Unet.forward: output.blocks(h: torch.Size([2, 384, 32, 32]), emb torch.Size([2, 768]))
-    Unet.forward: output.blocks(h: torch.Size([2, 384, 64, 64]), emb torch.Size([2, 768]))
-    Unet.forward: output.blocks(h: torch.Size([2, 384, 64, 64]), emb torch.Size([2, 768]))
-    Unet.forward: output.blocks(h: torch.Size([2, 384, 64, 64]), emb torch.Size([2, 768]))
-    Unet.forward: output.blocks(h: torch.Size([2, 384, 128, 128]), emb torch.Size([2, 768]))
-    Unet.forward: output.blocks(h: torch.Size([2, 192, 128, 128]), emb torch.Size([2, 768]))
-    Unet.forward: output.blocks(h: torch.Size([2, 192, 128, 128]), emb torch.Size([2, 768]))
-    Unet.forward: output.blocks(h: torch.Size([2, 192, 256, 256]), emb torch.Size([2, 768]))
-    Unet.forward: output.blocks(h: torch.Size([2, 192, 256, 256]), emb torch.Size([2, 768]))
-    Unet.forward: output.blocks(h: torch.Size([2, 192, 256, 256]), emb torch.Size([2, 768]))
-    Unet.forward: out(h: torch.Size([2, 192, 256, 256]))
-
+SuperResModel.forward; x = cat(x, upsampled): torch.Size([2, 6, 256, 256]))
+Unet.forward(x: torch.Size([2, 6, 256, 256]), t: torch.Size([2]), y: torch.Size([2]))
+Unet.forward(emb: torch.Size([2, 768]), timestep_embedding: torch.Size([2]), channels: 192)
+Unet.forward: input.blocks(h: torch.Size([2, 6, 256, 256]), emb torch.Size([2, 768]) -> residual(0)
+ Unet.forward: input.blocks(h: torch.Size([2, 192, 256, 256]), emb torch.Size([2, 768]) -> residual(1)
+  Unet.forward: input.blocks(h: torch.Size([2, 192, 256, 256]), emb torch.Size([2, 768]) -> residual(2)
+   Unet.forward: input.blocks(h: torch.Size([2, 192, 256, 256]), emb torch.Size([2, 768]) -> residual(3)
+    Unet.forward: input.blocks(h: torch.Size([2, 192, 128, 128]), emb torch.Size([2, 768]) -> residual(4)
+     Unet.forward: input.blocks(h: torch.Size([2, 192, 128, 128]), emb torch.Size([2, 768]) -> residual(5)
+      Unet.forward: input.blocks(h: torch.Size([2, 192, 128, 128]), emb torch.Size([2, 768]) -> residual(6)
+       Unet.forward: input.blocks(h: torch.Size([2, 192, 64, 64]), emb torch.Size([2, 768]) -> residual(7)
+        Unet.forward: input.blocks(h: torch.Size([2, 384, 64, 64]), emb torch.Size([2, 768]) -> residual(8)
+         Unet.forward: input.blocks(h: torch.Size([2, 384, 64, 64]), emb torch.Size([2, 768]) -> residual(9)
+          Unet.forward: input.blocks(h: torch.Size([2, 384, 32, 32]), emb torch.Size([2, 768]) -> residual(10)
+           Unet.forward: input.blocks(h: torch.Size([2, 384, 32, 32]), emb torch.Size([2, 768]) -> residual(11)
+            Unet.forward: input.blocks(h: torch.Size([2, 384, 32, 32]), emb torch.Size([2, 768]) -> residual(12)
+             Unet.forward: input.blocks(h: torch.Size([2, 384, 16, 16]), emb torch.Size([2, 768]) -> residual(13)
+              Unet.forward: input.blocks(h: torch.Size([2, 768, 16, 16]), emb torch.Size([2, 768]) -> residual(14)
+               Unet.forward: input.blocks(h: torch.Size([2, 768, 16, 16]), emb torch.Size([2, 768]) -> residual(15)
+                Unet.forward: input.blocks(h: torch.Size([2, 768, 8, 8]), emb torch.Size([2, 768]) -> residual(16)
+                 Unet.forward: input.blocks(h: torch.Size([2, 768, 8, 8]), emb torch.Size([2, 768]) -> residual(17)
+                  Unet.forward: middle.blocks ->(h: torch.Size([2, 768, 8, 8]), emb torch.Size([2, 768])
+                  Unet.forward: middle.blocks <-(h: torch.Size([2, 768, 8, 8]), emb torch.Size([2, 768])
+                  Unet.forward: output.blocks(cat(h: torch.Size([2, 768, 8, 8]) <- residual.pop(17) emb torch.Size([2, 768]))
+                 Unet.forward: output.blocks(cat(h: torch.Size([2, 768, 8, 8]) <- residual.pop(16) emb torch.Size([2, 768]))
+                Unet.forward: output.blocks(cat(h: torch.Size([2, 768, 8, 8]) <- residual.pop(15) emb torch.Size([2, 768]))
+               Unet.forward: output.blocks(cat(h: torch.Size([2, 768, 16, 16]) <- residual.pop(14) emb torch.Size([2, 768]))
+              Unet.forward: output.blocks(cat(h: torch.Size([2, 768, 16, 16]) <- residual.pop(13) emb torch.Size([2, 768]))
+             Unet.forward: output.blocks(cat(h: torch.Size([2, 768, 16, 16]) <- residual.pop(12) emb torch.Size([2, 768]))
+            Unet.forward: output.blocks(cat(h: torch.Size([2, 768, 32, 32]) <- residual.pop(11) emb torch.Size([2, 768]))
+           Unet.forward: output.blocks(cat(h: torch.Size([2, 384, 32, 32]) <- residual.pop(10) emb torch.Size([2, 768]))
+          Unet.forward: output.blocks(cat(h: torch.Size([2, 384, 32, 32]) <- residual.pop(9) emb torch.Size([2, 768]))
+         Unet.forward: output.blocks(cat(h: torch.Size([2, 384, 64, 64]) <- residual.pop(8) emb torch.Size([2, 768]))
+        Unet.forward: output.blocks(cat(h: torch.Size([2, 384, 64, 64]) <- residual.pop(7) emb torch.Size([2, 768]))
+       Unet.forward: output.blocks(cat(h: torch.Size([2, 384, 64, 64]) <- residual.pop(6) emb torch.Size([2, 768]))
+      Unet.forward: output.blocks(cat(h: torch.Size([2, 384, 128, 128]) <- residual.pop(5) emb torch.Size([2, 768]))
+     Unet.forward: output.blocks(cat(h: torch.Size([2, 192, 128, 128]) <- residual.pop(4) emb torch.Size([2, 768]))
+    Unet.forward: output.blocks(cat(h: torch.Size([2, 192, 128, 128]) <- residual.pop(3) emb torch.Size([2, 768]))
+   Unet.forward: output.blocks(cat(h: torch.Size([2, 192, 256, 256]) <- residual.pop(2) emb torch.Size([2, 768]))
+  Unet.forward: output.blocks(cat(h: torch.Size([2, 192, 256, 256]) <- residual.pop(1) emb torch.Size([2, 768]))
+ Unet.forward: output.blocks(cat(h: torch.Size([2, 192, 256, 256]) <- residual.pop(0) emb torch.Size([2, 768]))
+ Unet.forward: out(h: torch.Size([2, 192, 256, 256]))
+Unet.forward: out: torch.Size([2, 6, 256, 256]))
+x = SuperResModel.forward(x): torch.Size([2, 6, 256, 256])
+ 1.GaussianDiffusion.p_mean_variance(model_output: torch.Size([2, 6, 256, 256]), model _WrappedModel)
+  START_X GaussianDiffusion.p_mean_variance(model_mean_type: ModelMeanType.EPSILON, x: torch.Size([2, 3, 256, 256]), eps: torch.Size([2, 3, 256, 256])
  GaussianDiffusion._predict_xstart_from_eps(x_t: torch.Size([2, 3, 256, 256]),  eps: torch.Size([2, 3, 256, 256])
- GaussianDiffusion.q_posterior_mean_variance(
-    posterior_mean:torch.Size([2, 3, 256, 256]),
-    posterior_variance: torch.Size([2, 3, 256, 256]),
-    posterior_log_variance_clipped: torch.Size([2, 3, 256, 256])
- GaussianDiffusion.p_mean_variance(
-    model_mean: torch.Size([2, 3, 256, 256]),
-    model_variance: torch.Size([2, 3, 256, 256]),
-    model_log_variance: torch.Size([2, 3, 256, 256]),
-    pred_xstart: torch.Size([2, 3, 256, 256])
- GaussianDiffusion.p_sample(
-    x: torch.Size([2, 3, 256, 256]),
-    cond_fn: None,
-    sample: torch.Size([2, 3, 256, 256]),
-    pred_xstart: torch.Size([2, 3, 256, 256])
- GaussianDiffusion.p_sample_loop(final['sample']: torch.Size([2, 3, 256, 256])
-... 249 more loops ...
-created 2 samples
-"""
+ GaussianDiffusion.q_posterior_mean_variance( posterior_mean:torch.Size([2, 3, 256, 256]), posterior_variance: torch.Size([2, 3, 256, 256]), posterior_log_variance_clipped: torch.Size([2, 3, 256, 256])
+  START_X GaussianDiffusion.p_mean_variance(model_mean: torch.Size([2, 3, 256, 256])
+ 6. GaussianDiffusion.p_mean_variance(model_mean: torch.Size([2, 3, 256, 256]), model_variance: torch.Size([2, 3, 256, 256]), model_log_variance: torch.Size([2, 3, 256, 256]), pred_xstart: torch.Size([2, 3, 256, 256])
+ 2.GaussianDiffusion.p_sample(x: torch.Size([2, 3, 256, 256]), cond_fn: None, sample: torch.Size([2, 3, 256, 256]) pred_xstart: torch.Size([2, 3, 256, 256])
+ 
+ 
+ ##
+ # upsampling from 128-512
+ #
+ {'attention_resolutions': '32,16',
+ 'base_samples': '/home/z/work/gits/Diffusion/guided-diffusion/results/upscale64/upscale128_hare.npz',
+ 'batch_size': 2,
+ 'class_cond': True,
+ 'clip_denoised': True,
+ 'diffusion_steps': 1000,
+ 'dropout': 0.0,
+ 'large_size': 512,
+ 'learn_sigma': True,
+ 'model_path': '../models/128_512_upsampler.pt',
+ 'noise_schedule': 'linear',
+ 'num_channels': 192,
+ 'num_head_channels': 64,
+ 'num_heads': 4,
+ 'num_heads_upsample': -1,
+ 'num_res_blocks': 2,
+ 'num_samples': 2,
+ 'predict_xstart': False,
+ 'resblock_updown': True,
+ 'rescale_learned_sigmas': False,
+ 'rescale_timesteps': False,
+ 'small_size': 128,
+ 'timestep_respacing': '1000',
+ 'use_checkpoint': False,
+ 'use_ddim': False,
+ 'use_fp16': True,
+ 'use_kl': False,
+ 'use_scale_shift_norm': True}
+Logging to /tmp/openai-2022-03-15-13-01-34-134770
+creating model...
+{'attention_resolutions': '32,16',
+ 'class_cond': True,
+ 'diffusion_steps': 1000,
+ 'dropout': 0.0,
+ 'large_size': 512,
+ 'learn_sigma': True,
+ 'noise_schedule': 'linear',
+ 'num_channels': 192,
+ 'num_head_channels': 64,
+ 'num_heads': 4,
+ 'num_heads_upsample': -1,
+ 'num_res_blocks': 2,
+ 'predict_xstart': False,
+ 'resblock_updown': True,
+ 'rescale_learned_sigmas': False,
+ 'rescale_timesteps': False,
+ 'small_size': 128,
+ 'timestep_respacing': '1000',
+ 'use_checkpoint': False,
+ 'use_fp16': True,
+ 'use_kl': False,
+ 'use_scale_shift_norm': True}
+SuperResModel.__init__():
+Unet.__init__():
+	in_channels 6
+	out_channels 6
+	model_channels 192
+	num_res_blocks 2
+	attention_resolutions (16, 32)
+	dropout 0.0
+	conv_resample True
+	num_classes 1000
+	num_heads 4
+	num_head_channels 64
+	num_heads_upsample 4
+	level[0], mult[1], res_block[0] +ResBlock(ch192, time_embed_dim:768, dropout:0.0), out_channels:192, dims:2, use_scale_shift_norm:True
+	level[0], mult[1], res_block[0] +TimestepEmbedSequential(*layers 1
+	level[0], mult[1], res_block[1] +ResBlock(ch192, time_embed_dim:768, dropout:0.0), out_channels:192, dims:2, use_scale_shift_norm:True
+	level[0], mult[1], res_block[1] +TimestepEmbedSequential(*layers 1
+	level[0], mult[1], res_block[1] level != len(channel_mult) - 1] +TimestepEmbedSequential(ResBlock (ch: 192, time_embed_dim 768, dropout 0.0, out_channels 192, dims: 2
+	 level[1], mult[1], res_block[0] +ResBlock(ch192, time_embed_dim:768, dropout:0.0), out_channels:192, dims:2, use_scale_shift_norm:True
+	 level[1], mult[1], res_block[0] +TimestepEmbedSequential(*layers 1
+	 level[1], mult[1], res_block[1] +ResBlock(ch192, time_embed_dim:768, dropout:0.0), out_channels:192, dims:2, use_scale_shift_norm:True
+	 level[1], mult[1], res_block[1] +TimestepEmbedSequential(*layers 1
+	 level[1], mult[1], res_block[1] level != len(channel_mult) - 1] +TimestepEmbedSequential(ResBlock (ch: 192, time_embed_dim 768, dropout 0.0, out_channels 192, dims: 2
+	  level[2], mult[2], res_block[0] +ResBlock(ch192, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True
+	  level[2], mult[2], res_block[0] +TimestepEmbedSequential(*layers 1
+	  level[2], mult[2], res_block[1] +ResBlock(ch384, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True
+	  level[2], mult[2], res_block[1] +TimestepEmbedSequential(*layers 1
+	  level[2], mult[2], res_block[1] level != len(channel_mult) - 1] +TimestepEmbedSequential(ResBlock (ch: 384, time_embed_dim 768, dropout 0.0, out_channels 384, dims: 2
+	   level[3], mult[2], res_block[0] +ResBlock(ch384, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True
+	   level[3], mult[2], res_block[0] +TimestepEmbedSequential(*layers 1
+	   level[3], mult[2], res_block[1] +ResBlock(ch384, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True
+	   level[3], mult[2], res_block[1] +TimestepEmbedSequential(*layers 1
+	   level[3], mult[2], res_block[1] level != len(channel_mult) - 1] +TimestepEmbedSequential(ResBlock (ch: 384, time_embed_dim 768, dropout 0.0, out_channels 384, dims: 2
+	    level[4], mult[4], res_block[0] +ResBlock(ch384, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True
+	    level[4], mult[4] ds 16 in attention_resolutions(16, 32)] +AttentionBlock(ch768, num_heads:4, num_head_channels:64), use_new_attention_order:False
+	    level[4], mult[4], res_block[0] +TimestepEmbedSequential(*layers 2
+	    level[4], mult[4], res_block[1] +ResBlock(ch768, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True
+	    level[4], mult[4] ds 16 in attention_resolutions(16, 32)] +AttentionBlock(ch768, num_heads:4, num_head_channels:64), use_new_attention_order:False
+	    level[4], mult[4], res_block[1] +TimestepEmbedSequential(*layers 2
+	    level[4], mult[4], res_block[1] level != len(channel_mult) - 1] +TimestepEmbedSequential(ResBlock (ch: 768, time_embed_dim 768, dropout 0.0, out_channels 768, dims: 2
+	     level[5], mult[4], res_block[0] +ResBlock(ch768, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True
+	     level[5], mult[4] ds 32 in attention_resolutions(16, 32)] +AttentionBlock(ch768, num_heads:4, num_head_channels:64), use_new_attention_order:False
+	     level[5], mult[4], res_block[0] +TimestepEmbedSequential(*layers 2
+	     level[5], mult[4], res_block[1] +ResBlock(ch768, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True
+	     level[5], mult[4] ds 32 in attention_resolutions(16, 32)] +AttentionBlock(ch768, num_heads:4, num_head_channels:64), use_new_attention_order:False
+	     level[5], mult[4], res_block[1] +TimestepEmbedSequential(*layers 2
+	      MiddleBlock: +TimestepEmbedSequential(ResBlock (ch: 768, time_embed_dim 768, dropout 0.0, out_channels 768, dims: 2
+	      AttentionBlock (ch: 768, num_heads 4, num_head_channels 64, use_new_attention_order False
+	      ResBlock (ch: 768, time_embed_dim 768, dropout 0.0, out_channels 768, dims: 2
+	self._feature_size += ch  8256
+	     level[5], mult[4], res_block[0] +ResBlock(ch768 +ich768, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True, UP
+	     level[5], mult[4], AttentionBlock[0: ds in attention_resolutions] +AttentionBlock(ch768, num_heads:4, num_head_channels:64)
+	     level[5], mult[4], res_block[1] +ResBlock(ch768 +ich768, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True, UP
+	     level[5], mult[4], AttentionBlock[1: ds in attention_resolutions] +AttentionBlock(ch768, num_heads:4, num_head_channels:64)
+	     level[5], mult[4], res_block[2] +ResBlock(ch768 +ich768, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True, UP
+	     level[5], mult[4], AttentionBlock[2: ds in attention_resolutions] +AttentionBlock(ch768, num_heads:4, num_head_channels:64)
+	     level[5], mult[4], res_block[2, level and i == num_res_blocks] +ResBlock(ch768, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True
+	    level[4], mult[4], res_block[0] +ResBlock(ch768 +ich768, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True, UP
+	    level[4], mult[4], AttentionBlock[0: ds in attention_resolutions] +AttentionBlock(ch768, num_heads:4, num_head_channels:64)
+	    level[4], mult[4], res_block[1] +ResBlock(ch768 +ich768, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True, UP
+	    level[4], mult[4], AttentionBlock[1: ds in attention_resolutions] +AttentionBlock(ch768, num_heads:4, num_head_channels:64)
+	    level[4], mult[4], res_block[2] +ResBlock(ch768 +ich384, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True, UP
+	    level[4], mult[4], AttentionBlock[2: ds in attention_resolutions] +AttentionBlock(ch768, num_heads:4, num_head_channels:64)
+	    level[4], mult[4], res_block[2, level and i == num_res_blocks] +ResBlock(ch768, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True
+	   level[3], mult[2], res_block[0] +ResBlock(ch768 +ich384, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True, UP
+	   level[3], mult[2], res_block[1] +ResBlock(ch384 +ich384, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True, UP
+	   level[3], mult[2], res_block[2] +ResBlock(ch384 +ich384, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True, UP
+	   level[3], mult[2], res_block[2, level and i == num_res_blocks] +ResBlock(ch384, time_embed_dim:768, dropout:0.0), out_channels:768, dims:2, use_scale_shift_norm:True
+	  level[2], mult[2], res_block[0] +ResBlock(ch384 +ich384, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True, UP
+	  level[2], mult[2], res_block[1] +ResBlock(ch384 +ich384, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True, UP
+	  level[2], mult[2], res_block[2] +ResBlock(ch384 +ich192, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True, UP
+	  level[2], mult[2], res_block[2, level and i == num_res_blocks] +ResBlock(ch384, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True
+	 level[1], mult[1], res_block[0] +ResBlock(ch384 +ich192, time_embed_dim:768, dropout:0.0), out_channels:192, dims:2, use_scale_shift_norm:True, UP
+	 level[1], mult[1], res_block[1] +ResBlock(ch192 +ich192, time_embed_dim:768, dropout:0.0), out_channels:192, dims:2, use_scale_shift_norm:True, UP
+	 level[1], mult[1], res_block[2] +ResBlock(ch192 +ich192, time_embed_dim:768, dropout:0.0), out_channels:192, dims:2, use_scale_shift_norm:True, UP
+	 level[1], mult[1], res_block[2, level and i == num_res_blocks] +ResBlock(ch192, time_embed_dim:768, dropout:0.0), out_channels:384, dims:2, use_scale_shift_norm:True
+	level[0], mult[1], res_block[0] +ResBlock(ch192 +ich192, time_embed_dim:768, dropout:0.0), out_channels:192, dims:2, use_scale_shift_norm:True, UP
+	level[0], mult[1], res_block[1] +ResBlock(ch192 +ich192, time_embed_dim:768, dropout:0.0), out_channels:192, dims:2, use_scale_shift_norm:True, UP
+	level[0], mult[1], res_block[2] +ResBlock(ch192 +ich192, time_embed_dim:768, dropout:0.0), out_channels:192, dims:2, use_scale_shift_norm:True, UP
+ GaussianDiffusion.__init__()
+ GaussianDiffusion.__init__()
+loading data...
+creating samples...
+ GaussianDiffusion.p_sample_loop_progressive(indices: 1000
+ 1.GaussianDiffusion.p_sample(x: torch.Size([2, 3, 512, 512]), cond_fn: None, t: tensor([999, 999], device='cuda:0'), model: SuperResModel model_kwargs: {'low_res': torch.Size([2, 3, 128, 128]), 'y': torch.Size([2])}
+ 0.GaussianDiffusion.p_mean_variance(x: torch.Size([2, 3, 512, 512]))
+SuperResModel.forward(x): torch.Size([2, 3, 512, 512]) low_res torch.Size([2, 3, 128, 128]), t: tensor([999, 999], device='cuda:0'))
+/home/z/miniconda3/envs/abj/lib/python3.9/site-packages/torch/nn/functional.py:3631: UserWarning: Default upsampling behavior when mode=bilinear is changed to align_corners=False since 0.4.0. Please specify align_corners=True if the old behavior is desired. See the documentation of nn.Upsample for details.
+  warnings.warn(
+SuperResModel.forward; x = cat(x, upsampled): torch.Size([2, 6, 512, 512]))
+Unet.forward(x: torch.Size([2, 6, 512, 512]), t: torch.Size([2]), y: torch.Size([2]))
+Unet.forward(emb: torch.Size([2, 768]), timestep_embedding: torch.Size([2]), channels: 192)
+Unet.forward: input.blocks(h: torch.Size([2, 6, 512, 512]), emb torch.Size([2, 768]) -> residual(0)
+ Unet.forward: input.blocks(h: torch.Size([2, 192, 512, 512]), emb torch.Size([2, 768]) -> residual(1)
+  Unet.forward: input.blocks(h: torch.Size([2, 192, 512, 512]), emb torch.Size([2, 768]) -> residual(2)
+   Unet.forward: input.blocks(h: torch.Size([2, 192, 512, 512]), emb torch.Size([2, 768]) -> residual(3)
+    Unet.forward: input.blocks(h: torch.Size([2, 192, 256, 256]), emb torch.Size([2, 768]) -> residual(4)
+     Unet.forward: input.blocks(h: torch.Size([2, 192, 256, 256]), emb torch.Size([2, 768]) -> residual(5)
+      Unet.forward: input.blocks(h: torch.Size([2, 192, 256, 256]), emb torch.Size([2, 768]) -> residual(6)
+       Unet.forward: input.blocks(h: torch.Size([2, 192, 128, 128]), emb torch.Size([2, 768]) -> residual(7)
+        Unet.forward: input.blocks(h: torch.Size([2, 384, 128, 128]), emb torch.Size([2, 768]) -> residual(8)
+         Unet.forward: input.blocks(h: torch.Size([2, 384, 128, 128]), emb torch.Size([2, 768]) -> residual(9)
+          Unet.forward: input.blocks(h: torch.Size([2, 384, 64, 64]), emb torch.Size([2, 768]) -> residual(10)
+           Unet.forward: input.blocks(h: torch.Size([2, 384, 64, 64]), emb torch.Size([2, 768]) -> residual(11)
+            Unet.forward: input.blocks(h: torch.Size([2, 384, 64, 64]), emb torch.Size([2, 768]) -> residual(12)
+             Unet.forward: input.blocks(h: torch.Size([2, 384, 32, 32]), emb torch.Size([2, 768]) -> residual(13)
+              Unet.forward: input.blocks(h: torch.Size([2, 768, 32, 32]), emb torch.Size([2, 768]) -> residual(14)
+               Unet.forward: input.blocks(h: torch.Size([2, 768, 32, 32]), emb torch.Size([2, 768]) -> residual(15)
+                Unet.forward: input.blocks(h: torch.Size([2, 768, 16, 16]), emb torch.Size([2, 768]) -> residual(16)
+                 Unet.forward: input.blocks(h: torch.Size([2, 768, 16, 16]), emb torch.Size([2, 768]) -> residual(17)
+                  Unet.forward: middle.blocks ->(h: torch.Size([2, 768, 16, 16]), emb torch.Size([2, 768])
+                  Unet.forward: middle.blocks <-(h: torch.Size([2, 768, 16, 16]), emb torch.Size([2, 768])
+                  Unet.forward: output.blocks(cat(h: torch.Size([2, 768, 16, 16]) <- residual.pop(17) emb torch.Size([2, 768]))
+                 Unet.forward: output.blocks(cat(h: torch.Size([2, 768, 16, 16]) <- residual.pop(16) emb torch.Size([2, 768]))
+                Unet.forward: output.blocks(cat(h: torch.Size([2, 768, 16, 16]) <- residual.pop(15) emb torch.Size([2, 768]))
+               Unet.forward: output.blocks(cat(h: torch.Size([2, 768, 32, 32]) <- residual.pop(14) emb torch.Size([2, 768]))
+              Unet.forward: output.blocks(cat(h: torch.Size([2, 768, 32, 32]) <- residual.pop(13) emb torch.Size([2, 768]))
+             Unet.forward: output.blocks(cat(h: torch.Size([2, 768, 32, 32]) <- residual.pop(12) emb torch.Size([2, 768]))
+            Unet.forward: output.blocks(cat(h: torch.Size([2, 768, 64, 64]) <- residual.pop(11) emb torch.Size([2, 768]))
+           Unet.forward: output.blocks(cat(h: torch.Size([2, 384, 64, 64]) <- residual.pop(10) emb torch.Size([2, 768]))
+          Unet.forward: output.blocks(cat(h: torch.Size([2, 384, 64, 64]) <- residual.pop(9) emb torch.Size([2, 768]))
+         Unet.forward: output.blocks(cat(h: torch.Size([2, 384, 128, 128]) <- residual.pop(8) emb torch.Size([2, 768]))
+        Unet.forward: output.blocks(cat(h: torch.Size([2, 384, 128, 128]) <- residual.pop(7) emb torch.Size([2, 768]))
+       Unet.forward: output.blocks(cat(h: torch.Size([2, 384, 128, 128]) <- residual.pop(6) emb torch.Size([2, 768]))
+      Unet.forward: output.blocks(cat(h: torch.Size([2, 384, 256, 256]) <- residual.pop(5) emb torch.Size([2, 768]))
+     Unet.forward: output.blocks(cat(h: torch.Size([2, 192, 256, 256]) <- residual.pop(4) emb torch.Size([2, 768]))
+    Unet.forward: output.blocks(cat(h: torch.Size([2, 192, 256, 256]) <- residual.pop(3) emb torch.Size([2, 768]))
+   Unet.forward: output.blocks(cat(h: torch.Size([2, 192, 512, 512]) <- residual.pop(2) emb torch.Size([2, 768]))
+  Unet.forward: output.blocks(cat(h: torch.Size([2, 192, 512, 512]) <- residual.pop(1) emb torch.Size([2, 768]))
+ Unet.forward: output.blocks(cat(h: torch.Size([2, 192, 512, 512]) <- residual.pop(0) emb torch.Size([2, 768]))
+ Unet.forward: out(h: torch.Size([2, 192, 512, 512]))
+Unet.forward: out: torch.Size([2, 6, 512, 512]))
+x = SuperResModel.forward(x): torch.Size([2, 6, 512, 512])
+ 1.GaussianDiffusion.p_mean_variance(model_output: torch.Size([2, 6, 512, 512]), model _WrappedModel)
+  START_X GaussianDiffusion.p_mean_variance(model_mean_type: ModelMeanType.EPSILON, x: torch.Size([2, 3, 512, 512]), eps: torch.Size([2, 3, 512, 512])
+ GaussianDiffusion._predict_xstart_from_eps(x_t: torch.Size([2, 3, 512, 512]),  eps: torch.Size([2, 3, 512, 512])
+ GaussianDiffusion.q_posterior_mean_variance( posterior_mean:torch.Size([2, 3, 512, 512]), posterior_variance: torch.Size([2, 3, 512, 512]), posterior_log_variance_clipped: torch.Size([2, 3, 512, 512])
+  START_X GaussianDiffusion.p_mean_variance(model_mean: torch.Size([2, 3, 512, 512])
+ 6. GaussianDiffusion.p_mean_variance(model_mean: torch.Size([2, 3, 512, 512]), model_variance: torch.Size([2, 3, 512, 512]), model_log_variance: torch.Size([2, 3, 512, 512]), pred_xstart: torch.Size([2, 3, 512, 512])
+ 2.GaussianDiffusion.p_sample(x: torch.Size([2, 3, 512, 512]), cond_fn: None, sample: torch.Size([2, 3, 512, 512]) pred_xstart: torch.Size([2, 3, 512, 512])
+
+ """

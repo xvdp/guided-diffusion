@@ -9,7 +9,6 @@
 # SAMPLE_FLAGS="--batch_size 4 --num_samples 100 --timestep_respacing 250"
 UPSAMPLER='../models/64_256_upsampler.pt'
 BASESAMPLE='../results/samples_4x64x64x3_2/samples_4x64x64x3.npz'
-CLASS_COND='True'  # has to be true to return valid
 BATCH_SIZE=4
 SAMPLES=4
 
@@ -21,11 +20,14 @@ BASESAMPLE='/home/z/work/gits/Diffusion/guided-diffusion/results/upscale64/upsam
 
 BATCH_SIZE=4
 SAMPLES=16
-BASESAMPLE="/home/z/work/gits/Diffusion/guided-diffusion/results/upscale64/upsample_hare_downscale_.npz" # hare
+BASESAMPLE="/home/z/work/gits/Diffusion/guided-diffusion/results/upscale64/upsample_hare_downscale_.npz" # hare and hare eye
 BATCH_SIZE=2
 SAMPLES=2
-# CLASS_COND='False'
+# BASESAMPLE="/home/z/work/gits/Diffusion/guided-diffusion/results/upscale64/upsample_downscale_2.npz"
 
+# BASESAMPLE="/home/z/work/gits/Diffusion/guided-diffusion/results/upscale64/upsample_downscale_5.npz" # fires
+# BATCH_SIZE=4
+# SAMPLES=4
 
 
 if [ ! -f "$UPSAMPLER" ]; then
@@ -37,12 +39,10 @@ if [ ! -f "$BASESAMPLE" ]; then
     exit 1
 fi
 
-
 TIMESTEP_RESPACE=250
-
 while getopts 'b:s:t:' OPTION; do
   case "$OPTION" in
-    b) BATCH_SIZE="${OPTARG}";;
+    b)BATCH_SIZE="${OPTARG}";;
     s)SAMPLES="$OPTARG";;
     t)TIMESTEP_RESPACE="$OPTARG";;
   esac
@@ -50,5 +50,5 @@ done
 
 SAMPLE_FLAGS="--batch_size $BATCH_SIZE --num_samples $SAMPLES --timestep_respacing $TIMESTEP_RESPACE"
 
-MODEL_FLAGS="--attention_resolutions 32,16,8 --class_cond $CLASS_COND --diffusion_steps 1000 --large_size 256  --small_size 64 --learn_sigma True --noise_schedule linear --num_channels 192 --num_heads 4 --num_res_blocks 2 --resblock_updown True --use_fp16 True --use_scale_shift_norm True"
+MODEL_FLAGS="--attention_resolutions 32,16,8 --class_cond True --diffusion_steps 1000 --large_size 256  --small_size 64 --learn_sigma True --noise_schedule linear --num_channels 192 --num_heads 4 --num_res_blocks 2 --resblock_updown True --use_fp16 True --use_scale_shift_norm True"
 python x_super_res_sample.py $MODEL_FLAGS --model_path $UPSAMPLER --base_samples $BASESAMPLE $SAMPLE_FLAGS
