@@ -17,13 +17,9 @@ from .nn import (
     normalization,
     timestep_embedding,
 )
-
-_DEBUG = True
-def print_cond(*msg, cond=_DEBUG):
-    if cond:
-        print(*msg)
-
+from .debug_utils import logkwargs, logtensor, print_cond, save_image, _DEBUG
 # pylint: disable=no-member
+
 class AttentionPool2d(nn.Module):
     """
     Adapted from CLIP: https://github.com/openai/CLIP/blob/main/clip/model.py
@@ -682,7 +678,7 @@ class UNetModel(nn.Module):
             self.num_classes is not None
         ), "must specify y if and only if the model is class-conditional"
 
-        print_cond(f"Unet.forward(x: {x.shape}, t: {timesteps.shape}, y: {y.shape})", cond=_DEBUG and "forward" not in self.logonce)
+        print_cond(f"Unet.forward(x: {logtensor(x)}, t: {timesteps.shape}, y: {y.shape})", cond=_DEBUG and "forward" not in self.logonce)
 
         hs = []
         emb = self.time_embed(timestep_embedding(timesteps, self.model_channels))
@@ -725,27 +721,36 @@ class SuperResModel(UNetModel):
     """
     def __init__(self, image_size, in_channels, *args, **kwargs):
         print_cond("SuperResModel.__init__():")
-        self.step = 0
+        self.step = 249
         self.allequal = []
         self.upsampled = None
         super().__init__(image_size, in_channels * 2, *args, **kwargs)
 
     def forward(self, x, timesteps, low_res=None, **kwargs):
         _, _, new_height, new_width = x.shape
-        print_cond(f"SuperResModel.forward(x): {x.shape} low_res {low_res.shape}, t: {timesteps})", cond=_DEBUG and "superfwd" not in self.logonce)
+        print_cond(f"SuperResModel.forward(x: {logtensor(x)} low_res: {logtensor(low_res)}, t: {timesteps.tolist()})", cond=_DEBUG and "superfwd" not in self.logonce)
 
-        # what is teh point of interpolating low res to high res if low res is always the same?
-        # no difference
-        if self.upsampled is None:
-            self.upsampled = F.interpolate(low_res, (new_height, new_width), mode="bilinear")
+        # on inference there is no point of interpolating low res more than once?
+        if self.upsampled is None or list(self.parameters())[0].requires_grad:
+            self.upsampled = F.interpolate(low_res, (new_height, new_width), mode="bilinear", align_corners=False)
+
+        if self.step in (0,1,100,249) and _DEBUG:
+            y = x.cpu().clone().detach()
 
         x = th.cat([x, self.upsampled], dim=1)
-        print_cond(f"SuperResModel.forward; x = cat(x, upsampled): {x.shape})", cond=_DEBUG and "superfwd" not in self.logonce)
+        print_cond(f"SuperResModel.forward; x = cat(x, upsampled): {logtensor(x)})", cond=_DEBUG and "superfwd" not in self.logonce)
 
         x =  super().forward(x, timesteps, **kwargs)
 
-        print_cond(f"x = SuperResModel.forward(x): {x.shape}", cond=_DEBUG and "superfwd" not in self.logonce)
+        print_cond(f"x = SuperResModel.forward(x): {logtensor(x)}", cond=_DEBUG and "superfwd" not in self.logonce)
         self.logonce.append("superfwd")
+
+        if self.step in (0,1,100,249) and _DEBUG:
+            names = ["x_prev", "upsample", "model_out: x mean", "model_out: x_var"]
+            imgs = [y.cpu().clone().detach(), self.upsampled.cpu().clone().detach(), x[:,:3,...].cpu().clone().detach(), x[:,3:,...].cpu().clone().detach()]
+            names = [f"{names[i]}; mean: {imgs[i].mean().item():.3f} std {imgs[i].mean().item():.3f}" for i in range(len(imgs))]
+            save_image(*imgs, i=self.step, names=names)
+        self.step -=1
 
         return x
 

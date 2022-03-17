@@ -21,6 +21,7 @@ BASESAMPLE='/home/z/work/gits/Diffusion/guided-diffusion/results/upscale64/upsam
 BATCH_SIZE=4
 SAMPLES=16
 BASESAMPLE="/home/z/work/gits/Diffusion/guided-diffusion/results/upscale64/upsample_hare_downscale_.npz" # hare and hare eye
+BASESAMPLE="/home/z/work/gits/Diffusion/guided-diffusion/results/upscale64/upsample_downscale_4.npz"
 BATCH_SIZE=2
 SAMPLES=2
 # BASESAMPLE="/home/z/work/gits/Diffusion/guided-diffusion/results/upscale64/upsample_downscale_2.npz"
